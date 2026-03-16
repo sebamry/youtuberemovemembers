@@ -16,5 +16,6 @@ describe('build output', () => {
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.content_scripts[0].matches).toContain('https://www.youtube.com/*');
     expect(manifest.content_scripts[0].js).toContain('content/main.js');
+    expect(manifest.content_scripts[0].css).toContain('content/main.css');
   });
 });
