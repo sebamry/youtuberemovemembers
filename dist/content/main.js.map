@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/content/main.ts"],
-  "sourcesContent": ["import './styles.css';\n\nvoid chrome.runtime?.id;\n"],
-  "mappings": ";AAEA,KAAK,OAAO,SAAS;",
-  "names": []
-}

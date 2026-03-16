@@ -1,6 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 
-import { describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
+
+beforeAll(() => {
+  execFileSync('node', ['scripts/build.mjs'], { stdio: 'pipe' });
+});
 
 describe('build output', () => {
   test('produces a manifest with a YouTube content script', () => {
