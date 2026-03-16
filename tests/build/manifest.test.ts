@@ -1,0 +1,15 @@
+import { existsSync, readFileSync } from 'node:fs';
+
+import { describe, expect, test } from 'vitest';
+
+describe('build output', () => {
+  test('produces a manifest with a YouTube content script', () => {
+    expect(existsSync('dist/manifest.json')).toBe(true);
+
+    const manifest = JSON.parse(readFileSync('dist/manifest.json', 'utf8'));
+
+    expect(manifest.manifest_version).toBe(3);
+    expect(manifest.content_scripts[0].matches).toContain('https://www.youtube.com/*');
+    expect(manifest.content_scripts[0].js).toContain('content/main.js');
+  });
+});

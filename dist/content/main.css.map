@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/content/styles.css"],
+  "sourcesContent": ["[data-yt-remove-members=\"true\"] {\n  display: none !important;\n}\n"],
+  "mappings": ";AAAA,CAAC;AACC,WAAS;AACX;",
+  "names": []
+}

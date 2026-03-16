@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Members Filter",
+  "version": "0.1.0",
+  "description": "Hide members-only YouTube videos on channel pages.",
+  "host_permissions": ["https://www.youtube.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content/main.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "YouTube Members Filter"
+  }
+}
