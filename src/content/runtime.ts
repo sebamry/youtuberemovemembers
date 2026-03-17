@@ -1,15 +1,17 @@
-import { hideMembersOnlyVideosForCards, unhideMembersOnlyVideos } from './filter-members';
+import { hideMemberOnlyShelves, hideMembersOnlyVideosForCards, unhideMembersOnlyVideos } from './filter-members';
 import { getActiveSurfaceDetectors } from './surfaces';
 
-import { DEFAULT_SETTINGS, readSettings, type ExtensionSettings } from '@shared/settings';
+import { DEFAULT_SETTINGS, readSettings, type ExtensionSettings, writeSettings } from '@shared/settings';
 
 export type FilterRuntime = {
   dispose: () => void;
   run: () => void;
+  getPageHiddenCount: () => number;
 };
 
 export type SettingsStore = {
   read: () => Promise<ExtensionSettings>;
+  write?: (settings: ExtensionSettings) => Promise<void>;
   subscribe: (listener: () => void) => () => void;
 };
 
@@ -33,6 +35,13 @@ function createChromeSettingsStore(): SettingsStore {
       }
 
       return readSettings(chrome.storage.local);
+    },
+    async write(settings) {
+      if (typeof chrome === 'undefined' || !chrome.storage?.local) {
+        return;
+      }
+
+      await writeSettings(chrome.storage.local, settings);
     },
     subscribe(listener) {
       if (typeof chrome === 'undefined' || !chrome.storage?.onChanged) {
@@ -59,10 +68,42 @@ export async function bootstrapYouTubeMembersFilter(
   settingsStore: SettingsStore = createChromeSettingsStore()
 ): Promise<FilterRuntime> {
   let settings = await settingsStore.read();
+  let pageHiddenVideoIds = new Set<string>();
+  const messageListener =
+    typeof chrome !== 'undefined' && chrome.runtime?.onMessage
+      ? ((message: unknown, _sender: unknown, sendResponse: (value: unknown) => void) => {
+          if (
+            typeof message === 'object' &&
+            message !== null &&
+            'type' in message &&
+            message.type === 'yt-members-filter:get-page-stats'
+          ) {
+            sendResponse({ hiddenCount: pageHiddenVideoIds.size });
+          }
+        })
+      : null;
+
+  const persistHistoricalIds = async () => {
+    const currentHistoricalIds = settings.stats?.hiddenVideoIds ?? [];
+    const mergedHiddenVideoIds = Array.from(new Set([...currentHistoricalIds, ...pageHiddenVideoIds]));
+    if (mergedHiddenVideoIds.length === currentHistoricalIds.length) {
+      return;
+    }
+
+    settings = {
+      ...settings,
+      stats: {
+        hiddenVideoIds: mergedHiddenVideoIds
+      }
+    };
+
+    await settingsStore.write?.(settings);
+  };
 
   const run = () => {
     const currentUrl = new URL(currentWindow.location.href);
     const activeDetectors = getActiveSurfaceDetectors(currentUrl, currentDocument);
+    pageHiddenVideoIds = new Set<string>();
 
     unhideMembersOnlyVideos(currentDocument);
 
@@ -75,8 +116,22 @@ export async function bootstrapYouTubeMembersFilter(
         continue;
       }
 
-      hideMembersOnlyVideosForCards(detector.findCards(currentDocument), detector.key);
+      if (detector.findShelves) {
+        const shelfResult = hideMemberOnlyShelves(detector.findShelves(currentDocument), detector.key, {
+          currentUrl,
+          whitelistChannels: settings.whitelist.channels
+        });
+        shelfResult.hiddenVideoIds.forEach((videoId) => pageHiddenVideoIds.add(videoId));
+      }
+
+      const result = hideMembersOnlyVideosForCards(detector.findCards(currentDocument), detector.key, {
+        currentUrl,
+        whitelistChannels: settings.whitelist.channels
+      });
+      result.hiddenVideoIds.forEach((videoId) => pageHiddenVideoIds.add(videoId));
     }
+
+    void persistHistoricalIds();
   };
 
   const rescan = debounce(run, 50);
@@ -97,6 +152,9 @@ export async function bootstrapYouTubeMembersFilter(
 
   currentWindow.addEventListener('popstate', handleRouteChange);
   currentDocument.addEventListener('yt-navigate-finish', handleRouteChange as EventListener);
+  if (messageListener) {
+    chrome.runtime.onMessage.addListener(messageListener);
+  }
 
   run();
 
@@ -106,7 +164,13 @@ export async function bootstrapYouTubeMembersFilter(
       unsubscribe();
       currentWindow.removeEventListener('popstate', handleRouteChange);
       currentDocument.removeEventListener('yt-navigate-finish', handleRouteChange as EventListener);
+      if (messageListener) {
+        chrome.runtime.onMessage.removeListener(messageListener);
+      }
     },
-    run
+    run,
+    getPageHiddenCount() {
+      return pageHiddenVideoIds.size;
+    }
   };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { readSettings, writeSettings } from '@shared/settings';
+import { normalizeChannelInput, readSettings, writeSettings } from '@shared/settings';
 
 type StorageShape = {
   settings?: unknown;
@@ -31,6 +31,9 @@ describe('extension settings', () => {
     expect(settings.surfaces.home).toBe(true);
     expect(settings.surfaces.search).toBe(true);
     expect(settings.surfaces.subscriptions).toBe(true);
+    expect(settings.whitelist.channels).toEqual([]);
+    expect(settings.stats.hiddenVideoIds).toEqual([]);
+    expect(settings.appearance.theme).toBe('system');
   });
 
   test('merges partial stored values with defaults', async () => {
@@ -49,6 +52,9 @@ describe('extension settings', () => {
     expect(settings.surfaces.channel).toBe(true);
     expect(settings.surfaces.recommendations).toBe(true);
     expect(settings.surfaces.search).toBe(true);
+    expect(settings.whitelist.channels).toEqual([]);
+    expect(settings.stats.hiddenVideoIds).toEqual([]);
+    expect(settings.appearance.theme).toBe('system');
   });
 
   test('writes normalized settings back to storage', async () => {
@@ -62,6 +68,15 @@ describe('extension settings', () => {
         home: false,
         search: true,
         subscriptions: false
+      },
+      whitelist: {
+        channels: [' https://www.youtube.com/@DemoChannel ', '@demochannel']
+      },
+      stats: {
+        hiddenVideoIds: ['abc123', 'abc123', 'xyz987']
+      },
+      appearance: {
+        theme: 'dark'
       }
     });
 
@@ -70,5 +85,18 @@ describe('extension settings', () => {
     expect(settings.surfaces.channel).toBe(false);
     expect(settings.surfaces.home).toBe(false);
     expect(settings.surfaces.subscriptions).toBe(false);
+    expect(settings.whitelist.channels).toEqual(['@demochannel']);
+    expect(settings.stats.hiddenVideoIds).toEqual(['abc123', 'xyz987']);
+    expect(settings.appearance.theme).toBe('dark');
+  });
+
+  test('normalizes supported channel whitelist inputs', () => {
+    expect(normalizeChannelInput('@DemoChannel')).toBe('@demochannel');
+    expect(normalizeChannelInput('https://www.youtube.com/@DemoChannel')).toBe('@demochannel');
+    expect(normalizeChannelInput('https://www.youtube.com/@DemoChannel/videos')).toBe('@demochannel');
+    expect(normalizeChannelInput('https://www.youtube.com/channel/UC123ABC')).toBe('channel:UC123ABC');
+    expect(normalizeChannelInput('https://www.youtube.com/channel/UC123ABC/shorts')).toBe('channel:UC123ABC');
+    expect(normalizeChannelInput(' https://www.youtube.com/c/MyChannel ')).toBe('c:mychannel');
+    expect(normalizeChannelInput('not a channel')).toBeNull();
   });
 });

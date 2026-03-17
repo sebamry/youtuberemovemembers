@@ -19,6 +19,19 @@ describe('surface detectors', () => {
     ).toContain('channel');
   });
 
+  test('detects channel home shelves', () => {
+    expect(
+      getDetectorNames(
+        'https://www.youtube.com/@demo',
+        `
+          <ytd-shelf-renderer>
+            <ytd-grid-video-renderer></ytd-grid-video-renderer>
+          </ytd-shelf-renderer>
+        `
+      )
+    ).toContain('channel');
+  });
+
   test('detects home feed', () => {
     expect(
       getDetectorNames(

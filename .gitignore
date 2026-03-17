@@ -1,4 +1,14 @@
 .worktrees/
 node_modules/
-dist/
+/dist/
+.DS_Store
 .playwright-cli/
+/content/
+/popup/
+/options/
+/icons/
+/release/
+/output/
+/.impeccable.md
+/icon-system.md
+/docs/superpowers/

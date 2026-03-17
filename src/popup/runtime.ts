@@ -1,58 +1,129 @@
 import { DEFAULT_SETTINGS, type ExtensionSettings, readSettings, writeSettings } from '@shared/settings';
+import { applyThemePreference } from '@shared/theme';
 
 type StorageLike = {
   get: (key: string) => Promise<Record<string, unknown>>;
   set: (value: Record<string, unknown>) => Promise<void>;
 };
 
-const SURFACE_FIELDS: Array<{ key: keyof ExtensionSettings['surfaces']; label: string; hint: string }> = [
-  { key: 'channel', label: 'Paginas de canal', hint: 'Oculta videos para miembros en paginas de canal.' },
-  { key: 'recommendations', label: 'Recomendaciones', hint: 'Oculta videos para miembros en recomendaciones y relacionados.' },
-  { key: 'home', label: 'Inicio', hint: 'Oculta videos para miembros en la pagina principal.' },
-  { key: 'search', label: 'Busqueda', hint: 'Oculta videos para miembros en resultados de busqueda.' },
-  { key: 'subscriptions', label: 'Suscripciones', hint: 'Oculta videos para miembros en el feed de suscripciones.' }
+type PopupEnvironment = {
+  storage: StorageLike;
+  getCurrentPageStats: () => Promise<{ hiddenCount: number }>;
+  openOptionsPage: () => Promise<void> | void;
+  window?: Window;
+};
+
+const SURFACE_FIELDS: Array<{ key: keyof ExtensionSettings['surfaces']; label: string; title: string }> = [
+  { key: 'channel', label: 'Paginas de canal', title: 'Filtra videos para miembros en canales.' },
+  { key: 'recommendations', label: 'Recomendaciones', title: 'Filtra videos para miembros en relacionados y sugerencias.' },
+  { key: 'home', label: 'Inicio', title: 'Filtra videos para miembros en la pagina principal.' },
+  { key: 'search', label: 'Busqueda', title: 'Filtra videos para miembros en resultados de busqueda.' },
+  { key: 'subscriptions', label: 'Suscripciones', title: 'Filtra videos para miembros en suscripciones.' }
 ];
 
-function renderToggleRow(id: string, label: string, checked: boolean, disabled: boolean, hint: string, child = false) {
+function renderToggleRow(
+  id: string,
+  label: string,
+  checked: boolean,
+  disabled: boolean,
+  title: string,
+  options?: { child?: boolean; note?: string; strong?: boolean }
+) {
+  const classes = [
+    'setting-row',
+    options?.child ? 'setting-row-child' : '',
+    options?.strong ? 'setting-row-global' : '',
+    disabled ? 'is-disabled' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return `
-    <label class="toggle-row${child ? ' toggle-row-child' : ''}${disabled ? ' is-disabled' : ''}" title="${hint}">
-      <span class="toggle-copy">
-        <span class="toggle-label">${label}</span>
-        <span class="toggle-hint">${hint}</span>
+    <label class="${classes}" title="${title}">
+      <span class="toggle-switch">
+        <input class="toggle-input" type="checkbox" id="${id}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} />
+        <span class="toggle-slider" aria-hidden="true"></span>
       </span>
-      <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} />
+      <span class="setting-copy">
+        <span class="setting-label">${label}</span>
+        ${options?.note ? `<span class="setting-note">${options.note}</span>` : ''}
+      </span>
     </label>
   `;
 }
 
-function renderPopup(document: Document, settings: ExtensionSettings) {
+function renderStatRow(label: string, value: number | string) {
+  return `
+    <div class="stat-row">
+      <span class="stat-label">${label}</span>
+      <span class="stat-value">${value}</span>
+    </div>
+  `;
+}
+
+function renderPopup(document: Document, settings: ExtensionSettings, pageHiddenCount: number) {
   const form = document.querySelector('#popup-form');
   if (!(form instanceof HTMLFormElement)) {
     throw new Error('popup form host not found');
   }
 
-  const childrenMarkup = SURFACE_FIELDS.map((surface) =>
-    renderToggleRow(
+  const surfaceRows = SURFACE_FIELDS.map((surface, index) => {
+    const row = renderToggleRow(
       `surface-${surface.key}`,
       surface.label,
       settings.surfaces[surface.key],
       !settings.enabled,
-      surface.hint,
-      true
-    )
-  ).join('');
+      surface.title,
+      { child: true }
+    );
+    const separator = index < SURFACE_FIELDS.length - 1 ? '<div class="row-separator"></div>' : '';
+    return row + separator;
+  }).join('');
 
   form.innerHTML = `
-    <section class="panel">
-      <h1>Filtro de miembros</h1>
-      <p class="panel-subtitle">Activa o desactiva el filtro para YouTube.</p>
-      ${renderToggleRow('setting-enabled', 'Filtro global', settings.enabled, false, 'Activa o desactiva toda la extension.')}
-    </section>
-    <section class="panel">
-      <h2>Superficies</h2>
-      ${childrenMarkup}
-    </section>
-    <p class="instant-note">Los cambios se aplican al instante.</p>
+    <div class="popup-shell">
+      <header class="popup-header">
+        <h1>Filtro de miembros</h1>
+        <p>Oculta contenido para miembros sin interrumpir tu navegacion.</p>
+      </header>
+
+      <section class="settings-card">
+        ${renderToggleRow(
+          'setting-enabled',
+          'Activar filtro',
+          settings.enabled,
+          false,
+          'Activa o desactiva el filtro completo.',
+          { note: 'Activa el filtro en YouTube' }
+        )}
+      </section>
+
+      <div class="section-group">
+        <p class="section-title">Superficies</p>
+        <section class="settings-card">
+          ${surfaceRows}
+        </section>
+      </div>
+
+      <div class="section-group">
+        <p class="section-title">Estadisticas</p>
+        <section class="settings-card stats-group">
+          ${renderStatRow('En esta pagina', pageHiddenCount)}
+          <div class="row-separator"></div>
+          ${renderStatRow('Total ocultados', settings.stats.hiddenVideoIds.length)}
+        </section>
+      </div>
+
+      <section class="config-section settings-card">
+        <button type="button" id="open-options" class="config-link">
+          <span class="config-copy">
+            <span class="config-label">Whitelist y ajustes</span>
+            <span class="config-note">Gestiona canales permitidos, tema y contador.</span>
+          </span>
+          <span class="config-chevron" aria-hidden="true"></span>
+        </button>
+      </section>
+    </div>
   `;
 }
 
@@ -70,31 +141,62 @@ function readCurrentSettings(document: Document): ExtensionSettings {
       home: document.querySelector<HTMLInputElement>('#surface-home')?.checked ?? true,
       search: document.querySelector<HTMLInputElement>('#surface-search')?.checked ?? true,
       subscriptions: document.querySelector<HTMLInputElement>('#surface-subscriptions')?.checked ?? true
+    },
+    whitelist: {
+      channels: DEFAULT_SETTINGS.whitelist.channels
+    },
+    stats: {
+      hiddenVideoIds: DEFAULT_SETTINGS.stats.hiddenVideoIds
+    },
+    appearance: {
+      theme: DEFAULT_SETTINGS.appearance.theme
     }
   };
 }
 
 async function persistFromDom(document: Document, storage: StorageLike) {
-  const settings = readCurrentSettings(document);
+  const existingSettings = await readSettings(storage);
+  const domSettings = readCurrentSettings(document);
+  const settings = {
+    ...existingSettings,
+    ...domSettings,
+    surfaces: domSettings.surfaces
+  };
   await writeSettings(storage, settings);
-  renderPopup(document, settings);
-  bindEvents(document, storage);
+  return settings;
 }
 
-function bindEvents(document: Document, storage: StorageLike) {
+async function refreshPopup(document: Document, environment: PopupEnvironment) {
+  const [settings, pageStats] = await Promise.all([readSettings(environment.storage), environment.getCurrentPageStats()]);
+  applyThemePreference(document, environment.window ?? window, settings.appearance.theme);
+  renderPopup(document, settings, pageStats.hiddenCount);
+  bindEvents(document, environment);
+}
+
+function bindEvents(document: Document, environment: PopupEnvironment) {
   document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
     input.addEventListener(
       'change',
       () => {
-        void persistFromDom(document, storage);
+        void persistFromDom(document, environment.storage).then(async (settings) => {
+          const pageStats = await environment.getCurrentPageStats();
+          renderPopup(document, settings, pageStats.hiddenCount);
+          bindEvents(document, environment);
+        });
       },
       { once: true }
     );
   });
+
+  document.querySelector<HTMLButtonElement>('#open-options')?.addEventListener(
+    'click',
+    () => {
+      void environment.openOptionsPage();
+    },
+    { once: true }
+  );
 }
 
-export async function initPopup(document: Document, storage: StorageLike) {
-  const settings = await readSettings(storage);
-  renderPopup(document, settings);
-  bindEvents(document, storage);
+export async function initPopup(document: Document, environment: PopupEnvironment) {
+  await refreshPopup(document, environment);
 }

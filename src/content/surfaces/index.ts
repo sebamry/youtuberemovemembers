@@ -4,6 +4,7 @@ import { findCardsBySelectors, isChannelVideoPageUrl } from '@shared/selectors';
 export type SurfaceDetector = {
   key: SurfaceKey;
   findCards: (root: ParentNode) => Element[];
+  findShelves?: (root: ParentNode) => Element[];
   matches: (url: URL, root: ParentNode) => boolean;
 };
 
@@ -13,11 +14,12 @@ const SURFACE_DETECTORS: SurfaceDetector[] = [
     matches: (url) => isChannelVideoPageUrl(url),
     findCards: (root) =>
       findCardsBySelectors(root, [
+        'ytd-grid-video-renderer',
         'ytd-rich-grid-media',
         'ytd-rich-item-renderer',
-        'ytd-grid-video-renderer',
         'ytd-video-renderer'
-      ])
+      ]),
+    findShelves: (root) => findCardsBySelectors(root, ['ytd-shelf-renderer'])
   },
   {
     key: 'home',
@@ -43,5 +45,11 @@ const SURFACE_DETECTORS: SurfaceDetector[] = [
 ];
 
 export function getActiveSurfaceDetectors(url: URL, root: ParentNode) {
-  return SURFACE_DETECTORS.filter((detector) => detector.matches(url, root) && detector.findCards(root).length > 0);
+  return SURFACE_DETECTORS.filter((detector) => {
+    if (!detector.matches(url, root)) {
+      return false;
+    }
+
+    return detector.findCards(root).length > 0 || (detector.findShelves?.(root).length ?? 0) > 0;
+  });
 }

@@ -1,11 +1,14 @@
 {
   "name": "youtube-members-filter-extension",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "vitest run"
+    "verify": "npm test && npx tsc --noEmit && npm run build",
+    "package": "node scripts/package.mjs",
+    "test": "vitest run",
+    "test:regression": "vitest run tests/content/regression.test.ts"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.327",

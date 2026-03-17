@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
-import { FILTERED_ATTRIBUTE, SURFACE_ATTRIBUTE, hideMembersOnlyVideosForCards, unhideMembersOnlyVideos } from '@content/filter-members';
+import {
+  FILTERED_ATTRIBUTE,
+  SURFACE_ATTRIBUTE,
+  hideMemberOnlyShelves,
+  hideMembersOnlyVideosForCards,
+  unhideMembersOnlyVideos
+} from '@content/filter-members';
 
 describe('members-only card filtering', () => {
   test('marks member-only cards for hiding', () => {
@@ -21,12 +27,13 @@ describe('members-only card filtering', () => {
       </ytd-rich-item-renderer>
     `;
 
-    const hiddenCount = hideMembersOnlyVideosForCards(
+    const result = hideMembersOnlyVideosForCards(
       Array.from(document.querySelectorAll('ytd-rich-item-renderer')),
       'channel'
     );
 
-    expect(hiddenCount).toBe(1);
+    expect(result.hiddenCount).toBe(1);
+    expect(result.hiddenVideoIds).toEqual([]);
     expect(document.querySelector('#members-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
     expect(document.querySelector('#public-card')?.hasAttribute(FILTERED_ATTRIBUTE)).toBe(false);
   });
@@ -38,8 +45,9 @@ describe('members-only card filtering', () => {
       </ytd-grid-video-renderer>
     `;
 
-    hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-grid-video-renderer')), 'channel');
+    const result = hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-grid-video-renderer')), 'channel');
 
+    expect(result.hiddenCount).toBe(1);
     expect(document.querySelector('#overlay-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
   });
 
@@ -63,9 +71,92 @@ describe('members-only card filtering', () => {
       </ytd-rich-grid-media>
     `;
 
-    hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-rich-grid-media')), 'channel');
+    const result = hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-rich-grid-media')), 'channel');
 
+    expect(result.hiddenCount).toBe(1);
     expect(document.querySelector('#modern-members-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
+
+  test('matches membership badges by structural membership class even without localized text', () => {
+    document.body.innerHTML = `
+      <ytd-grid-video-renderer id="membership-class-card">
+        <a href="/watch?v=membership123">Video</a>
+        <ytd-badge-supported-renderer id="video-badges">
+          <badge-shape class="yt-badge-shape yt-badge-shape--membership yt-badge-shape--typography"></badge-shape>
+        </ytd-badge-supported-renderer>
+      </ytd-grid-video-renderer>
+    `;
+
+    const result = hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-grid-video-renderer')), 'channel');
+
+    expect(result.hiddenCount).toBe(1);
+    expect(result.hiddenVideoIds).toEqual(['membership123']);
+    expect(document.querySelector('#membership-class-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
+
+  test('hides a full channel-home shelf when all shelf videos are members-only', () => {
+    document.body.innerHTML = `
+      <ytd-shelf-renderer id="members-shelf">
+        <ytd-grid-video-renderer id="members-card-1">
+          <a href="/watch?v=member1111111">Video</a>
+          <ytd-badge-supported-renderer id="video-badges">
+            <badge-shape class="yt-badge-shape yt-badge-shape--membership yt-badge-shape--typography"></badge-shape>
+          </ytd-badge-supported-renderer>
+        </ytd-grid-video-renderer>
+        <ytd-grid-video-renderer id="members-card-2">
+          <a href="/watch?v=member2222222">Video</a>
+          <ytd-badge-supported-renderer id="video-badges">
+            <badge-shape class="yt-badge-shape yt-badge-shape--membership yt-badge-shape--typography"></badge-shape>
+          </ytd-badge-supported-renderer>
+        </ytd-grid-video-renderer>
+      </ytd-shelf-renderer>
+      <ytd-shelf-renderer id="mixed-shelf">
+        <ytd-grid-video-renderer id="public-card">
+          <a href="/watch?v=public3333333">Video</a>
+        </ytd-grid-video-renderer>
+        <ytd-grid-video-renderer id="member-card">
+          <a href="/watch?v=member4444444">Video</a>
+          <ytd-badge-supported-renderer id="video-badges">
+            <badge-shape class="yt-badge-shape yt-badge-shape--membership yt-badge-shape--typography"></badge-shape>
+          </ytd-badge-supported-renderer>
+        </ytd-grid-video-renderer>
+      </ytd-shelf-renderer>
+    `;
+
+    const result = hideMemberOnlyShelves(Array.from(document.querySelectorAll('ytd-shelf-renderer')), 'channel');
+
+    expect(result.hiddenCount).toBe(1);
+    expect(result.hiddenVideoIds).toEqual(['member1111111', 'member2222222']);
+    expect(document.querySelector('#members-shelf')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+    expect(document.querySelector('#mixed-shelf')?.hasAttribute(FILTERED_ATTRIBUTE)).toBe(false);
+  });
+
+  test('does not hide videos from whitelisted channels and returns unique hidden video ids', () => {
+    document.body.innerHTML = `
+      <ytd-video-renderer id="members-card">
+        <a href="/watch?v=abc123xyz89">Video</a>
+        <a href="/@AllowedChannel">Allowed</a>
+        <ytd-badge-supported-renderer>
+          <span>Members only</span>
+        </ytd-badge-supported-renderer>
+      </ytd-video-renderer>
+      <ytd-video-renderer id="hidden-card">
+        <a href="/watch?v=xyz98765432">Video</a>
+        <a href="/@BlockedChannel">Blocked</a>
+        <ytd-badge-supported-renderer>
+          <span>Members only</span>
+        </ytd-badge-supported-renderer>
+      </ytd-video-renderer>
+    `;
+
+    const result = hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-video-renderer')), 'home', {
+      whitelistChannels: ['@allowedchannel']
+    });
+
+    expect(result.hiddenCount).toBe(1);
+    expect(result.hiddenVideoIds).toEqual(['xyz98765432']);
+    expect(document.querySelector('#members-card')?.hasAttribute(FILTERED_ATTRIBUTE)).toBe(false);
+    expect(document.querySelector('#hidden-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
   });
 
   test('unhides only the cards hidden for a specific surface', () => {
