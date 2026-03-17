@@ -95,7 +95,7 @@ Expected: FAIL because the popup does not exist yet.
 
 - [ ] **Step 3: Write the minimal popup implementation**
 
-Add popup assets, wire them into the manifest and build, render the global and child toggles, apply the hierarchy/disabled states, and persist changes immediately to storage.
+Add popup assets, wire them into the manifest and build, render the global and child toggles with Spanish labels, include the short per-surface help text or tooltips plus the “changes apply instantly” note, apply the hierarchy/disabled states, and persist changes immediately to storage.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
@@ -140,6 +140,14 @@ test('unhides cards when a surface is disabled', async () => {
 });
 ```
 
+`tests/content/surfaces.test.ts` must include representative fixtures and assertions for all five supported surfaces:
+
+- channel
+- recommendations
+- home
+- search
+- subscriptions
+
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `npm test -- tests/content/surfaces.test.ts tests/content/main.test.ts tests/content/filter-members.test.ts`
@@ -147,7 +155,7 @@ Expected: FAIL because multi-surface filtering and reversibility do not exist ye
 
 - [ ] **Step 3: Write the minimal per-surface implementation**
 
-Create separate surface detectors, extend the filtering markers to record which surface hid each card, load settings into the runtime, and react to `chrome.storage.onChanged` by hiding or unhiding content immediately.
+Create separate surface detectors, extend the filtering markers to record which surface hid each card with `data-yt-remove-surface`, load settings into the runtime, and react to `chrome.storage.onChanged` by hiding or unhiding content immediately.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
@@ -201,3 +209,12 @@ Expected: Shows `storage` permission, popup entrypoint, YouTube content script J
 git add .
 git commit -m "test: verify popup-controlled members filter extension"
 ```
+
+- [ ] **Step 7: Run manual verification in Chrome**
+
+Load `dist/` as an unpacked extension in Chrome and verify:
+
+- global toggle disables and re-enables filtering immediately
+- each child toggle updates an already open YouTube tab immediately
+- hidden items reappear when the relevant toggle is turned off
+- channel, recommendations, home, search, and subscriptions each respond to their own toggle
