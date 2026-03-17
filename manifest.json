@@ -3,6 +3,7 @@
   "name": "YouTube Members Filter",
   "version": "0.1.0",
   "description": "Hide members-only YouTube videos on channel pages.",
+  "permissions": ["storage"],
   "host_permissions": ["https://www.youtube.com/*"],
   "content_scripts": [
     {
