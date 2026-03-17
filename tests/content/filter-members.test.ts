@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { FILTERED_ATTRIBUTE, hideMembersOnlyVideos } from '@content/filter-members';
+import { FILTERED_ATTRIBUTE, SURFACE_ATTRIBUTE, hideMembersOnlyVideosForCards, unhideMembersOnlyVideos } from '@content/filter-members';
 
 describe('members-only card filtering', () => {
   test('marks member-only cards for hiding', () => {
@@ -21,7 +21,10 @@ describe('members-only card filtering', () => {
       </ytd-rich-item-renderer>
     `;
 
-    const hiddenCount = hideMembersOnlyVideos(document);
+    const hiddenCount = hideMembersOnlyVideosForCards(
+      Array.from(document.querySelectorAll('ytd-rich-item-renderer')),
+      'channel'
+    );
 
     expect(hiddenCount).toBe(1);
     expect(document.querySelector('#members-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
@@ -35,7 +38,7 @@ describe('members-only card filtering', () => {
       </ytd-grid-video-renderer>
     `;
 
-    hideMembersOnlyVideos(document);
+    hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-grid-video-renderer')), 'channel');
 
     expect(document.querySelector('#overlay-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
   });
@@ -60,8 +63,21 @@ describe('members-only card filtering', () => {
       </ytd-rich-grid-media>
     `;
 
-    hideMembersOnlyVideos(document);
+    hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-rich-grid-media')), 'channel');
 
     expect(document.querySelector('#modern-members-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
+
+  test('unhides only the cards hidden for a specific surface', () => {
+    document.body.innerHTML = `
+      <ytd-rich-grid-media id="home-card" data-yt-remove-members="true" data-yt-remove-surface="home"></ytd-rich-grid-media>
+      <ytd-rich-grid-media id="channel-card" data-yt-remove-members="true" data-yt-remove-surface="channel"></ytd-rich-grid-media>
+    `;
+
+    unhideMembersOnlyVideos(document, 'home');
+
+    expect(document.querySelector('#home-card')?.hasAttribute(FILTERED_ATTRIBUTE)).toBe(false);
+    expect(document.querySelector('#home-card')?.hasAttribute(SURFACE_ATTRIBUTE)).toBe(false);
+    expect(document.querySelector('#channel-card')?.getAttribute(SURFACE_ATTRIBUTE)).toBe('channel');
   });
 });

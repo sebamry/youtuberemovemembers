@@ -1,10 +1,16 @@
-import { hideMembersOnlyVideos } from './filter-members';
+import { hideMembersOnlyVideosForCards, unhideMembersOnlyVideos } from './filter-members';
+import { getActiveSurfaceDetectors } from './surfaces';
 
-import { hasCandidateVideoCards, isChannelVideoPageUrl } from '@shared/selectors';
+import { DEFAULT_SETTINGS, readSettings, type ExtensionSettings } from '@shared/settings';
 
 export type FilterRuntime = {
   dispose: () => void;
   run: () => void;
+};
+
+export type SettingsStore = {
+  read: () => Promise<ExtensionSettings>;
+  subscribe: (listener: () => void) => () => void;
 };
 
 function debounce<T extends (...args: never[]) => void>(callback: T, delayMs: number) {
@@ -19,18 +25,58 @@ function debounce<T extends (...args: never[]) => void>(callback: T, delayMs: nu
   };
 }
 
-function isActiveChannelPage(currentWindow: Window, currentDocument: Document) {
-  const currentUrl = new URL(currentWindow.location.href);
-  return isChannelVideoPageUrl(currentUrl) && hasCandidateVideoCards(currentDocument);
+function createChromeSettingsStore(): SettingsStore {
+  return {
+    async read() {
+      if (typeof chrome === 'undefined' || !chrome.storage?.local) {
+        return DEFAULT_SETTINGS;
+      }
+
+      return readSettings(chrome.storage.local);
+    },
+    subscribe(listener) {
+      if (typeof chrome === 'undefined' || !chrome.storage?.onChanged) {
+        return () => {};
+      }
+
+      const handleChange = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+        if (areaName !== 'local' || !changes.settings) {
+          return;
+        }
+
+        listener();
+      };
+
+      chrome.storage.onChanged.addListener(handleChange);
+      return () => chrome.storage.onChanged.removeListener(handleChange);
+    }
+  };
 }
 
-export function bootstrapYouTubeMembersFilter(currentWindow: Window, currentDocument: Document): FilterRuntime {
+export async function bootstrapYouTubeMembersFilter(
+  currentWindow: Window,
+  currentDocument: Document,
+  settingsStore: SettingsStore = createChromeSettingsStore()
+): Promise<FilterRuntime> {
+  let settings = await settingsStore.read();
+
   const run = () => {
-    if (!isActiveChannelPage(currentWindow, currentDocument)) {
+    const currentUrl = new URL(currentWindow.location.href);
+    const activeDetectors = getActiveSurfaceDetectors(currentUrl, currentDocument);
+
+    unhideMembersOnlyVideos(currentDocument);
+
+    if (!settings.enabled) {
       return;
     }
 
-    hideMembersOnlyVideos(currentDocument);
+    for (const detector of activeDetectors) {
+      if (!settings.surfaces[detector.key]) {
+        continue;
+      }
+
+      hideMembersOnlyVideosForCards(detector.findCards(currentDocument), detector.key);
+    }
   };
 
   const rescan = debounce(run, 50);
@@ -42,6 +88,12 @@ export function bootstrapYouTubeMembersFilter(currentWindow: Window, currentDocu
   });
 
   const handleRouteChange = () => rescan();
+  const unsubscribe = settingsStore.subscribe(() => {
+    void settingsStore.read().then((nextSettings) => {
+      settings = nextSettings;
+      rescan();
+    });
+  });
 
   currentWindow.addEventListener('popstate', handleRouteChange);
   currentDocument.addEventListener('yt-navigate-finish', handleRouteChange as EventListener);
@@ -51,6 +103,7 @@ export function bootstrapYouTubeMembersFilter(currentWindow: Window, currentDocu
   return {
     dispose() {
       observer.disconnect();
+      unsubscribe();
       currentWindow.removeEventListener('popstate', handleRouteChange);
       currentDocument.removeEventListener('yt-navigate-finish', handleRouteChange as EventListener);
     },
