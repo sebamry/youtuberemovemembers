@@ -18,4 +18,11 @@ describe('build output', () => {
     expect(manifest.content_scripts[0].js).toContain('content/main.js');
     expect(manifest.content_scripts[0].css).toContain('content/main.css');
   });
+
+  test('emits a classic content script without ESM export syntax', () => {
+    const contentScript = readFileSync('dist/content/main.js', 'utf8');
+
+    expect(contentScript).not.toContain('export {');
+    expect(contentScript).not.toContain('export{');
+  });
 });

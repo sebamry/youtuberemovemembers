@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { FILTERED_ATTRIBUTE } from '@content/filter-members';
-import { bootstrapYouTubeMembersFilter } from '@content/main';
+import { bootstrapYouTubeMembersFilter } from '@content/runtime';
 
 function appendMembersOnlyCard() {
   const host = document.querySelector('#items');
