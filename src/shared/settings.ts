@@ -5,6 +5,11 @@ export type ExtensionSettings = {
   surfaces: Record<SurfaceKey, boolean>;
 };
 
+type PartialSettings = {
+  enabled?: boolean;
+  surfaces?: Partial<Record<SurfaceKey, boolean>>;
+};
+
 type StorageLike = {
   get: (key: string) => Promise<Record<string, unknown>>;
   set: (value: Record<string, unknown>) => Promise<void>;
@@ -24,8 +29,9 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
 };
 
 function normalizeStoredSettings(value: unknown): ExtensionSettings {
-  const partial = typeof value === 'object' && value !== null ? (value as Partial<ExtensionSettings>) : {};
-  const partialSurfaces = typeof partial.surfaces === 'object' && partial.surfaces !== null ? partial.surfaces : {};
+  const partial: PartialSettings = typeof value === 'object' && value !== null ? (value as PartialSettings) : {};
+  const partialSurfaces: Partial<Record<SurfaceKey, boolean>> =
+    typeof partial.surfaces === 'object' && partial.surfaces !== null ? partial.surfaces : {};
 
   return {
     enabled: typeof partial.enabled === 'boolean' ? partial.enabled : DEFAULT_SETTINGS.enabled,

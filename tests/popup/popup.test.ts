@@ -8,8 +8,8 @@ function createStorage(settings = DEFAULT_SETTINGS) {
 
   return {
     get: vi.fn(async () => ({ settings: storedSettings })),
-    set: vi.fn(async (value: { settings: typeof DEFAULT_SETTINGS }) => {
-      storedSettings = value.settings;
+    set: vi.fn(async (value: Record<string, unknown>) => {
+      storedSettings = value.settings as typeof DEFAULT_SETTINGS;
     })
   };
 }
