@@ -1,5 +1,5 @@
 const CHANNEL_ROUTE_PATTERNS = [/^\/@[^/]+\/videos\/?$/u, /^\/c\/[^/]+\/videos\/?$/u, /^\/user\/[^/]+\/videos\/?$/u, /^\/channel\/[^/]+\/videos\/?$/u];
-const VIDEO_CARD_SELECTOR = 'ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-video-renderer';
+const VIDEO_CARD_SELECTOR = 'ytd-rich-grid-media, ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-video-renderer';
 const BADGE_SELECTOR = 'ytd-badge-supported-renderer, ytd-thumbnail-overlay-badge-supported-renderer';
 
 export function isChannelVideoPageUrl(url: URL) {

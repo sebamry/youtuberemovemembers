@@ -1,5 +1,6 @@
 const MEMBERS_BADGE_PHRASES = new Set([
   'miembros primero',
+  'primero para miembros',
   'solo para miembros',
   'members only',
   'members first'

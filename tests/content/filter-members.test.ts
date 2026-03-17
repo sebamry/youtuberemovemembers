@@ -39,4 +39,29 @@ describe('members-only card filtering', () => {
 
     expect(document.querySelector('#overlay-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
   });
+
+  test('matches the modern channel grid card and badge shape used on YouTube channel pages', () => {
+    document.body.innerHTML = `
+      <ytd-rich-grid-media id="modern-members-card">
+        <div id="details" class="style-scope ytd-rich-grid-media">
+          <div id="metadata-line">
+            <ytd-badge-supported-renderer>
+              <div>
+                <badge-shape
+                  class="yt-badge-shape yt-badge-shape--membership yt-badge-shape--typography"
+                  aria-label="Primero para miembros"
+                >
+                  Primero para miembros
+                </badge-shape>
+              </div>
+            </ytd-badge-supported-renderer>
+          </div>
+        </div>
+      </ytd-rich-grid-media>
+    `;
+
+    hideMembersOnlyVideos(document);
+
+    expect(document.querySelector('#modern-members-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
 });
