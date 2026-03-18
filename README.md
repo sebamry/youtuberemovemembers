@@ -1,4 +1,4 @@
-# YouTube Members Filter
+# Members Only Filter
 
 Hide members-only YouTube videos and member-only shelves so non-member browsing stays clean.
 
@@ -69,7 +69,7 @@ npm run package
 
 This writes a store package to:
 
-`release/youtube-members-filter-v1.0.0.zip`
+`release/members-only-filter-v1.0.0.zip`
 
 ## Publishing Files
 

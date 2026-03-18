@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Members Filter",
+  "name": "Members Only Filter",
   "version": "1.0.0",
   "description": "Hide members-only videos and member-only shelves across YouTube channel pages, home, recommendations, search, and subscriptions.",
   "icons": {
@@ -20,7 +20,7 @@
     }
   ],
   "action": {
-    "default_title": "YouTube Members Filter",
+    "default_title": "Members Only Filter",
     "default_popup": "popup/index.html",
     "default_icon": {
       "16": "icons/icon-16.png",

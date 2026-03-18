@@ -4,19 +4,19 @@ Last updated: 2026-03-17
 
 ## Overview
 
-YouTube Members Filter is a Chrome extension that hides members-only YouTube content on supported YouTube pages.
+Members Only Filter is a Chrome extension that hides members-only YouTube content on supported YouTube pages.
 
 The extension is designed to work locally on the user's device.
 
 ## Data Collection
 
-YouTube Members Filter does not sell personal data.
+Members Only Filter does not sell personal data.
 
-YouTube Members Filter does not transfer user data to third parties.
+Members Only Filter does not transfer user data to third parties.
 
-YouTube Members Filter does not use remote code.
+Members Only Filter does not use remote code.
 
-YouTube Members Filter does not collect or send personal information, browsing history, authentication tokens, or payment information to any server.
+Members Only Filter does not collect or send personal information, browsing history, authentication tokens, or payment information to any server.
 
 ## Data Stored Locally
 
@@ -39,7 +39,7 @@ The extension uses:
 
 ## No Remote Processing
 
-YouTube Members Filter performs its filtering logic locally in the browser. It does not upload page contents or account information for processing.
+Members Only Filter performs its filtering logic locally in the browser. It does not upload page contents or account information for processing.
 
 ## Changes
 

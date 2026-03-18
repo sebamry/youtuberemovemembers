@@ -8,7 +8,7 @@ const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
 const releaseDir = path.join(rootDir, 'release');
 const version = '1.0.0';
-const zipPath = path.join(releaseDir, `youtube-members-filter-v${version}.zip`);
+const zipPath = path.join(releaseDir, `members-only-filter-v${version}.zip`);
 
 async function run() {
   await execFileAsync('node', ['scripts/build.mjs'], { cwd: rootDir });

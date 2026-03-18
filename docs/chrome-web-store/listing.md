@@ -16,7 +16,7 @@ Spanish or English, depending on the listing you want to publish first.
 
 ## Store Name
 
-YouTube Members Filter
+Members Only Filter
 
 ## Short Description
 
@@ -24,7 +24,7 @@ Hide members-only and members-first content across YouTube channels, home, searc
 
 ## Detailed Description
 
-YouTube Members Filter removes members-only YouTube content from the places where it gets in the way most.
+Members Only Filter removes members-only YouTube content from the places where it gets in the way most.
 
 It can hide:
 

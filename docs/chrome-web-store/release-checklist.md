@@ -23,7 +23,7 @@ Confirm:
 - all tests pass
 - typecheck passes
 - build succeeds
-- `release/youtube-members-filter-v1.0.0.zip` exists
+- `release/members-only-filter-v1.0.0.zip` exists
 - the root folder still loads in `chrome://extensions`
 - the ZIP loads cleanly when unpacked for a final smoke test
 
