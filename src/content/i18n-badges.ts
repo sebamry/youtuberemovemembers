@@ -2,8 +2,14 @@ const MEMBERS_BADGE_PHRASES = new Set([
   'miembros primero',
   'primero para miembros',
   'solo para miembros',
+  'apenas para membros',
+  'membros primeiro',
+  'membres uniquement',
+  'en premier pour les membres',
   'members only',
-  'members first'
+  'members first',
+  'nur fur mitglieder',
+  'zuerst fur mitglieder'
 ]);
 
 export function normalizeBadgeText(value: string) {

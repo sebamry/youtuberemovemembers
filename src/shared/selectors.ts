@@ -6,18 +6,68 @@ const CHANNEL_ROUTE_PATTERNS = [
   /^\/user\/[^/]+(?:\/(?:videos|featured|playlists|community))?\/?$/u,
   /^\/channel\/[^/]+(?:\/(?:videos|featured|playlists|community))?\/?$/u
 ];
-const BADGE_SELECTOR = 'ytd-badge-supported-renderer, ytd-thumbnail-overlay-badge-supported-renderer';
+const BADGE_SELECTOR = 'ytd-badge-supported-renderer, ytd-thumbnail-overlay-badge-supported-renderer, badge-shape';
+
+function joinSelectors(selectors: string[]) {
+  return selectors.join(', ');
+}
 
 export function isChannelVideoPageUrl(url: URL) {
   return CHANNEL_ROUTE_PATTERNS.some((pattern) => pattern.test(url.pathname));
 }
 
 export function findCardsBySelectors(root: ParentNode, selectors: string[]) {
-  return selectors.flatMap((selector) => Array.from(root.querySelectorAll(selector)));
+  return findMatchingElements(root, selectors);
+}
+
+export function findMatchingElements(root: ParentNode, selectors: string[]) {
+  if (selectors.length === 0) {
+    return [];
+  }
+
+  return Array.from(root.querySelectorAll(joinSelectors(selectors)));
+}
+
+export function findRelevantElements(root: Element, selectors: string[]) {
+  if (selectors.length === 0) {
+    return [];
+  }
+
+  const selector = joinSelectors(selectors);
+  const matches = new Set<Element>();
+  const closestMatch = root.closest(selector);
+  if (closestMatch) {
+    matches.add(closestMatch);
+  }
+
+  findMatchingElements(root, selectors).forEach((element) => matches.add(element));
+  return Array.from(matches);
+}
+
+export function findClosestMatchingElement(root: Element, selectors: string[]) {
+  if (selectors.length === 0) {
+    return null;
+  }
+
+  const selector = joinSelectors(selectors);
+  if (root.matches(selector)) {
+    return root;
+  }
+
+  return root.closest(selector);
+}
+
+export function findMutationRelevantElements(root: Element, selectors: string[]) {
+  const closestMatch = findClosestMatchingElement(root, selectors);
+  if (closestMatch) {
+    return [closestMatch];
+  }
+
+  return findMatchingElements(root, selectors);
 }
 
 export function findBadgeContainers(card: ParentNode) {
-  return Array.from(card.querySelectorAll(BADGE_SELECTOR));
+  return card.querySelectorAll(BADGE_SELECTOR);
 }
 
 function resolveHref(candidate: string) {

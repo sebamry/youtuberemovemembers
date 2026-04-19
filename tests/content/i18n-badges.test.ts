@@ -12,6 +12,9 @@ describe('members badge matching', () => {
     expect(isMembersBadgeText('Solo para miembros')).toBe(true);
     expect(isMembersBadgeText('Members only')).toBe(true);
     expect(isMembersBadgeText('Members first')).toBe(true);
+    expect(isMembersBadgeText('Apenas para membros')).toBe(true);
+    expect(isMembersBadgeText('Membres uniquement')).toBe(true);
+    expect(isMembersBadgeText('Nur fur Mitglieder')).toBe(true);
   });
 
   test('ignores unrelated labels', () => {

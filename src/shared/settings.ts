@@ -9,6 +9,7 @@ export type ExtensionSettings = {
   };
   stats: {
     hiddenVideoIds: string[];
+    totalHiddenCount: number;
   };
   appearance: {
     theme: ThemePreference;
@@ -23,6 +24,7 @@ type PartialSettings = {
   };
   stats?: {
     hiddenVideoIds?: unknown;
+    totalHiddenCount?: unknown;
   };
   appearance?: {
     theme?: unknown;
@@ -35,9 +37,27 @@ type StorageLike = {
 };
 
 const SETTINGS_KEY = 'settings';
+export const MAX_HISTORICAL_HIDDEN_VIDEO_IDS = 1000;
 
 function uniqueStrings(values: string[]) {
   return Array.from(new Set(values));
+}
+
+export function normalizeHistoricalHiddenVideoIds(values: string[]) {
+  const uniqueValues = uniqueStrings(values);
+  if (uniqueValues.length <= MAX_HISTORICAL_HIDDEN_VIDEO_IDS) {
+    return uniqueValues;
+  }
+
+  return uniqueValues.slice(-MAX_HISTORICAL_HIDDEN_VIDEO_IDS);
+}
+
+function normalizeTotalHiddenCount(value: unknown, hiddenVideoIdsLength: number) {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    return hiddenVideoIdsLength;
+  }
+
+  return Math.max(value, hiddenVideoIdsLength);
 }
 
 function normalizeChannelPath(pathname: string) {
@@ -102,7 +122,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     channels: []
   },
   stats: {
-    hiddenVideoIds: []
+    hiddenVideoIds: [],
+    totalHiddenCount: 0
   },
   appearance: {
     theme: 'system'
@@ -121,9 +142,11 @@ function normalizeStoredSettings(value: unknown): ExtensionSettings {
           .filter((entry): entry is string => entry !== null)
       )
     : DEFAULT_SETTINGS.whitelist.channels;
-  const normalizedHiddenVideoIds = Array.isArray(partial.stats?.hiddenVideoIds)
-    ? uniqueStrings(partial.stats.hiddenVideoIds.filter((entry): entry is string => typeof entry === 'string'))
+  const rawHiddenVideoIds = Array.isArray(partial.stats?.hiddenVideoIds)
+    ? partial.stats.hiddenVideoIds.filter((entry): entry is string => typeof entry === 'string')
     : DEFAULT_SETTINGS.stats.hiddenVideoIds;
+  const normalizedHiddenVideoIds = normalizeHistoricalHiddenVideoIds(rawHiddenVideoIds);
+  const normalizedTotalHiddenCount = normalizeTotalHiddenCount(partial.stats?.totalHiddenCount, rawHiddenVideoIds.length);
   const normalizedTheme =
     partial.appearance?.theme === 'light' || partial.appearance?.theme === 'dark' || partial.appearance?.theme === 'system'
       ? partial.appearance.theme
@@ -142,7 +165,8 @@ function normalizeStoredSettings(value: unknown): ExtensionSettings {
       channels: normalizedChannels
     },
     stats: {
-      hiddenVideoIds: normalizedHiddenVideoIds
+      hiddenVideoIds: normalizedHiddenVideoIds,
+      totalHiddenCount: normalizedTotalHiddenCount
     },
     appearance: {
       theme: normalizedTheme

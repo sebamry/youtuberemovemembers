@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Members Only Filter - Overview Screenshot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="canvas">
+      <section class="hero">
+        <div class="brand">
+          <img src="../../../../src/assets/icons/icon-128.png" alt="Members Only Filter icon" />
+          <div>
+            <p class="eyebrow">Chrome Extension</p>
+            <h1 class="title">Oculta videos members-only sin romper YouTube</h1>
+            <p class="subtitle">
+              Limpia canales, home, recomendaciones, busqueda y suscripciones con un filtro local y configurable.
+            </p>
+          </div>
+        </div>
+        <div class="badge">Sin tracking. Sin servidores.</div>
+      </section>
+
+      <section class="grid">
+        <article class="panel preview-shell">
+          <div class="preview-header">
+            <div>
+              <h2 class="preview-title">Antes y despues</h2>
+              <p class="preview-note">Los items para miembros se detectan y desaparecen del feed.</p>
+            </div>
+            <span class="pill">YouTube surfaces</span>
+          </div>
+
+          <div class="cards">
+            <article class="video-card">
+              <div class="video-thumb"></div>
+              <p class="video-meta">Video publico</p>
+              <p class="video-copy">Se mantiene visible para no alterar el resto de la pagina.</p>
+              <div class="status-row">
+                <span class="status visible">Visible</span>
+              </div>
+            </article>
+
+            <article class="video-card hidden-card">
+              <div class="video-thumb members"></div>
+              <p class="video-meta">Members first Q&amp;A</p>
+              <p class="video-copy">Marcado como members-only.</p>
+              <div class="status-row">
+                <span class="status members">Members only</span>
+              </div>
+            </article>
+
+            <article class="video-card">
+              <div class="video-thumb"></div>
+              <p class="video-meta">Playlist publica</p>
+              <p class="video-copy">El resto del contenido sigue intacto.</p>
+              <div class="status-row">
+                <span class="status visible">Visible</span>
+              </div>
+            </article>
+
+            <article class="video-card hidden-card">
+              <div class="video-thumb members"></div>
+              <p class="video-meta">Behind the scenes</p>
+              <p class="video-copy">Oculto por el filtro.</p>
+              <div class="status-row">
+                <span class="status members">Members only</span>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <aside class="panel stats-card">
+          <div class="preview-header">
+            <div>
+              <h2 class="preview-title">Control fino</h2>
+              <p class="preview-note">Activa o desactiva cada superficie desde el popup.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <p class="stat-label">Ocultados en esta pagina</p>
+              <p class="stat-value">2</p>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Total historico</p>
+              <p class="stat-value">148</p>
+            </div>
+          </div>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <div>
+                <h3>Per-surface toggles</h3>
+                <p>Canales, home, busqueda, suscripciones y recomendaciones.</p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <div>
+                <h3>Whitelist de canales</h3>
+                <p>Mantiene visibles los canales que quieras exceptuar.</p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <div>
+                <h3>Todo local</h3>
+                <p>Solo usa `storage` y `https://www.youtube.com/*`.</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

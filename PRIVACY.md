@@ -26,7 +26,8 @@ The extension stores the following data locally in Chrome storage on the user's 
 - per-surface toggle preferences
 - theme preference
 - whitelisted channel identifiers
-- a local history of hidden video IDs used for the hidden-content counter
+- a bounded local history of hidden video IDs used to avoid recounting recent items
+- a persistent total hidden-count number used for the historical counter
 
 This data stays in the user's browser profile unless the user removes it or uninstalls the extension.
 
@@ -47,4 +48,6 @@ If this privacy policy changes, the updated version should be published at the s
 
 ## Contact
 
-For support, use the public support channel associated with the repository or extension listing.
+For support, use the public issue tracker:
+
+`https://github.com/sebamry/youtuberemovemembers/issues`

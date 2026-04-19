@@ -41,7 +41,8 @@ describe('options page', () => {
         channels: ['@demochannel']
       },
       stats: {
-        hiddenVideoIds: ['abc123', 'xyz987']
+        hiddenVideoIds: ['abc123', 'xyz987'],
+        totalHiddenCount: 48
       }
     });
 
@@ -50,7 +51,7 @@ describe('options page', () => {
     expect(document.body.textContent).toContain('Whitelist de canales');
     expect(document.body.textContent).toContain('Apariencia');
     expect(document.body.textContent).toContain('@demochannel');
-    expect(document.body.textContent).toContain('2');
+    expect(document.body.textContent).toContain('48');
   });
 
   test('adds a normalized whitelist channel', async () => {
@@ -99,7 +100,8 @@ describe('options page', () => {
     const { storage, ready } = mountOptions({
       ...DEFAULT_SETTINGS,
       stats: {
-        hiddenVideoIds: ['abc123']
+        hiddenVideoIds: ['abc123'],
+        totalHiddenCount: 48
       }
     });
 
@@ -113,7 +115,8 @@ describe('options page', () => {
       settings: {
         ...DEFAULT_SETTINGS,
         stats: {
-          hiddenVideoIds: []
+          hiddenVideoIds: [],
+          totalHiddenCount: 0
         }
       }
     });

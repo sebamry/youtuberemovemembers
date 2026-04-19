@@ -87,6 +87,6 @@ Use [PRIVACY.md](./PRIVACY.md) as the privacy-policy source for your public repo
 
 ## Support
 
-If you publish this on GitHub, the simplest support URL is your repository issues page:
+The support URL for the Chrome Web Store listing is:
 
-`https://github.com/<your-user>/<your-repo>/issues`
+`https://github.com/sebamry/youtuberemovemembers/issues`

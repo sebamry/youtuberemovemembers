@@ -1,48 +1,12 @@
 import { build } from 'esbuild';
 import { cp, mkdir, rm } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import path from 'node:path';
+
+import { regenerateIcons } from './release-utils.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
 const rootMirrorDirs = ['content', 'popup', 'options', 'icons'];
-const execFileAsync = promisify(execFile);
-
-async function regenerateIcons() {
-  const baseIconPath = path.join(rootDir, 'src/assets/icons/icon-base.svg');
-  const sizes = [16, 32, 48, 128];
-
-  try {
-    await Promise.all(
-      sizes.map(async (size) => {
-        const outputPath = path.join(rootDir, `src/assets/icons/icon-${size}.png`);
-        await execFileAsync('sips', [
-          '-s',
-          'format',
-          'png',
-          baseIconPath,
-          '--resampleHeightWidth',
-          String(size),
-          String(size),
-          '--out',
-          outputPath
-        ]);
-      })
-    );
-  } catch (error) {
-    const errorCode =
-      typeof error === 'object' && error !== null && 'code' in error ? Reflect.get(error, 'code') : undefined;
-    const isMissingSips = errorCode === 'ENOENT';
-
-    if (isMissingSips) {
-      console.warn('sips not found; keeping committed icon PNGs as-is.');
-      return;
-    }
-
-    throw error;
-  }
-}
 
 async function copyStaticAssets() {
   await cp(path.join(rootDir, 'manifest.json'), path.join(distDir, 'manifest.json'));

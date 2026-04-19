@@ -6,7 +6,7 @@
 - push `main` to GitHub
 - make sure `README.md` reflects the shipped behavior
 - make sure `PRIVACY.md` is public
-- decide the support URL, usually GitHub issues
+- confirm the support URL points to GitHub issues
 
 ## Pre-Release Verification
 
@@ -32,12 +32,14 @@ Confirm:
 - upload the ZIP from `release/`
 - fill in short description and detailed description
 - set category
-- add support URL
-- add homepage URL
-- add privacy policy URL
+- add support URL: `https://github.com/sebamry/youtuberemovemembers/issues`
+- add homepage URL: `https://github.com/sebamry/youtuberemovemembers`
+- add privacy policy URL:
+  - preferred: `https://sebamry.github.io/youtuberemovemembers/privacy/`
+  - fallback: `https://github.com/sebamry/youtuberemovemembers/blob/main/PRIVACY.md`
 - complete privacy disclosures accurately
-- add screenshots
-- add promotional assets if desired
+- upload screenshots from `docs/chrome-web-store/assets/`
+- upload the small promo tile from `docs/chrome-web-store/assets/store-small-promo-tile.png`
 - include reviewer notes describing the single purpose
 
 ## Manual Smoke Test Before Clicking Submit

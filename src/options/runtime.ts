@@ -80,7 +80,7 @@ function renderOptions(document: Document, settings: ExtensionSettings) {
         <p class="card-note">El total se mantiene aunque cierres Chrome.</p>
         <div class="stat-row">
           <span>Total historico ocultado</span>
-          <strong>${settings.stats.hiddenVideoIds.length}</strong>
+          <strong>${settings.stats.totalHiddenCount}</strong>
         </div>
         <button type="button" id="reset-total" class="secondary-button">Resetear total</button>
       </section>
@@ -163,7 +163,8 @@ function bindEvents(document: Document, environment: OptionsEnvironment, setting
       const nextSettings: ExtensionSettings = {
         ...settings,
         stats: {
-          hiddenVideoIds: []
+          hiddenVideoIds: [],
+          totalHiddenCount: 0
         }
       };
 

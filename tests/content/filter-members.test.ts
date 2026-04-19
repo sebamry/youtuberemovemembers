@@ -1,10 +1,11 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import {
   FILTERED_ATTRIBUTE,
   SURFACE_ATTRIBUTE,
   hideMemberOnlyShelves,
   hideMembersOnlyVideosForCards,
+  syncMembersOnlyVideoCard,
   unhideMembersOnlyVideos
 } from '@content/filter-members';
 
@@ -94,6 +95,25 @@ describe('members-only card filtering', () => {
     expect(document.querySelector('#membership-class-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
   });
 
+  test('matches direct badge-shape membership labels used in newer home feed cards', () => {
+    document.body.innerHTML = `
+      <ytd-rich-item-renderer id="direct-badge-card">
+        <a href="/watch?v=directbadge1">Video</a>
+        <div id="details">
+          <div id="badges">
+            <badge-shape aria-label="Solo para miembros">Solo para miembros</badge-shape>
+          </div>
+        </div>
+      </ytd-rich-item-renderer>
+    `;
+
+    const result = hideMembersOnlyVideosForCards(Array.from(document.querySelectorAll('ytd-rich-item-renderer')), 'home');
+
+    expect(result.hiddenCount).toBe(1);
+    expect(result.hiddenVideoIds).toEqual(['directbadge1']);
+    expect(document.querySelector('#direct-badge-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
+
   test('hides a full channel-home shelf when all shelf videos are members-only', () => {
     document.body.innerHTML = `
       <ytd-shelf-renderer id="members-shelf">
@@ -157,6 +177,29 @@ describe('members-only card filtering', () => {
     expect(result.hiddenVideoIds).toEqual(['xyz98765432']);
     expect(document.querySelector('#members-card')?.hasAttribute(FILTERED_ATTRIBUTE)).toBe(false);
     expect(document.querySelector('#hidden-card')?.getAttribute(FILTERED_ATTRIBUTE)).toBe('true');
+  });
+
+  test('does not scan channel links when whitelist is empty', () => {
+    document.body.innerHTML = `
+      <ytd-video-renderer id="members-card">
+        <a href="/watch?v=abc123xyz89">Video</a>
+        <a href="/@BlockedChannel">Blocked</a>
+        <ytd-badge-supported-renderer>
+          <span>Members only</span>
+        </ytd-badge-supported-renderer>
+      </ytd-video-renderer>
+    `;
+
+    const querySelectorAllSpy = vi.spyOn(Element.prototype, 'querySelectorAll');
+    const card = document.querySelector('#members-card');
+    if (!card) {
+      throw new Error('expected members card');
+    }
+
+    syncMembersOnlyVideoCard(card, 'home');
+
+    const anchorQueryCalls = querySelectorAllSpy.mock.calls.filter((call) => call[0] === 'a[href]').length;
+    expect(anchorQueryCalls).toBe(1);
   });
 
   test('unhides only the cards hidden for a specific surface', () => {

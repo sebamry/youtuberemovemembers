@@ -47,11 +47,13 @@ All filtering happens locally in your browser.
 Use this wording when filling out the privacy section in the dashboard, adjusted to the exact questions shown there:
 
 - The extension stores settings locally in Chrome storage.
+- The extension stores a bounded local-only history of hidden YouTube video IDs to avoid recounting recent items.
+- The extension stores a persistent total hidden-count number so the historical counter survives browser restarts.
 - The extension does not sell personal data.
 - The extension does not transfer user data to third parties.
 - The extension does not use personal data for unrelated purposes.
 - The extension does not use remote code.
-- The extension does not collect browsing history outside the YouTube pages where it runs.
+- The extension runs only on YouTube pages and does not send browsing activity to a server.
 
 ## Permission Justification
 
@@ -77,16 +79,17 @@ This extension has a single purpose: hide YouTube content that is explicitly mar
 
 ## Public URLs To Fill In After GitHub Is Live
 
-- Homepage URL: `https://github.com/<your-user>/<your-repo>`
-- Support URL: `https://github.com/<your-user>/<your-repo>/issues`
+- Homepage URL: `https://github.com/sebamry/youtuberemovemembers`
+- Support URL: `https://github.com/sebamry/youtuberemovemembers/issues`
 - Privacy Policy URL:
-  - recommended: GitHub Pages URL
-  - fallback: public GitHub file URL for `PRIVACY.md`
+  - preferred: `https://sebamry.github.io/youtuberemovemembers/privacy/`
+  - fallback ready now: `https://github.com/sebamry/youtuberemovemembers/blob/main/PRIVACY.md`
 
-## Assets You Still Need Before Submission
+## Store Assets Included In This Repo
 
-- extension icon `128x128`
-- at least one store screenshot
-- promotional tile if you want richer merchandising in the store
+- extension icon `128x128`: `src/assets/icons/icon-128.png`
+- screenshot `1280x800`: `docs/chrome-web-store/assets/store-screenshot-overview.png`
+- screenshot `1280x800`: `docs/chrome-web-store/assets/store-screenshot-settings.png`
+- small promo tile `440x280`: `docs/chrome-web-store/assets/store-small-promo-tile.png`
 
 Keep the screenshots focused on the actual extension UI and YouTube before/after states.

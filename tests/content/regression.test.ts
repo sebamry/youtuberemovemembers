@@ -5,36 +5,38 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { FILTERED_ATTRIBUTE } from '@content/filter-members';
 import { bootstrapYouTubeMembersFilter } from '@content/runtime';
-import { type ExtensionSettings } from '@shared/settings';
+import { DEFAULT_SETTINGS, type ExtensionSettings } from '@shared/settings';
 
 function readFixture(name: string) {
   return readFileSync(path.resolve(__dirname, '../fixtures/content', name), 'utf8');
 }
 
-function makeSettings(overrides: Partial<ExtensionSettings> = {}): ExtensionSettings {
+type SettingsOverrides = Partial<Omit<ExtensionSettings, 'surfaces' | 'whitelist' | 'stats' | 'appearance'>> & {
+  surfaces?: Partial<ExtensionSettings['surfaces']>;
+  whitelist?: Partial<ExtensionSettings['whitelist']>;
+  stats?: Partial<ExtensionSettings['stats']>;
+  appearance?: Partial<ExtensionSettings['appearance']>;
+};
+
+function makeSettings(overrides: SettingsOverrides = {}): ExtensionSettings {
   return {
-    enabled: true,
+    enabled: overrides.enabled ?? DEFAULT_SETTINGS.enabled,
     surfaces: {
-      channel: true,
-      recommendations: true,
-      home: true,
-      search: true,
-      subscriptions: true,
-      ...overrides.surfaces
+      ...DEFAULT_SETTINGS.surfaces,
+      ...(overrides.surfaces ?? {})
     },
     whitelist: {
-      channels: [],
-      ...overrides.whitelist
+      ...DEFAULT_SETTINGS.whitelist,
+      ...(overrides.whitelist ?? {})
     },
     stats: {
-      hiddenVideoIds: [],
-      ...overrides.stats
+      ...DEFAULT_SETTINGS.stats,
+      ...(overrides.stats ?? {})
     },
     appearance: {
-      theme: 'system',
-      ...overrides.appearance
-    },
-    ...overrides
+      ...DEFAULT_SETTINGS.appearance,
+      ...(overrides.appearance ?? {})
+    }
   };
 }
 

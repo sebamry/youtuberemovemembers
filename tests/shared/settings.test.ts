@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { normalizeChannelInput, readSettings, writeSettings } from '@shared/settings';
+import { MAX_HISTORICAL_HIDDEN_VIDEO_IDS, normalizeChannelInput, readSettings, writeSettings } from '@shared/settings';
 
 type StorageShape = {
   settings?: unknown;
@@ -33,6 +33,7 @@ describe('extension settings', () => {
     expect(settings.surfaces.subscriptions).toBe(true);
     expect(settings.whitelist.channels).toEqual([]);
     expect(settings.stats.hiddenVideoIds).toEqual([]);
+    expect(settings.stats.totalHiddenCount).toBe(0);
     expect(settings.appearance.theme).toBe('system');
   });
 
@@ -54,6 +55,7 @@ describe('extension settings', () => {
     expect(settings.surfaces.search).toBe(true);
     expect(settings.whitelist.channels).toEqual([]);
     expect(settings.stats.hiddenVideoIds).toEqual([]);
+    expect(settings.stats.totalHiddenCount).toBe(0);
     expect(settings.appearance.theme).toBe('system');
   });
 
@@ -73,7 +75,8 @@ describe('extension settings', () => {
         channels: [' https://www.youtube.com/@DemoChannel ', '@demochannel']
       },
       stats: {
-        hiddenVideoIds: ['abc123', 'abc123', 'xyz987']
+        hiddenVideoIds: ['abc123', 'abc123', 'xyz987'],
+        totalHiddenCount: 7
       },
       appearance: {
         theme: 'dark'
@@ -87,7 +90,24 @@ describe('extension settings', () => {
     expect(settings.surfaces.subscriptions).toBe(false);
     expect(settings.whitelist.channels).toEqual(['@demochannel']);
     expect(settings.stats.hiddenVideoIds).toEqual(['abc123', 'xyz987']);
+    expect(settings.stats.totalHiddenCount).toBe(7);
     expect(settings.appearance.theme).toBe('dark');
+  });
+
+  test('derives the historical total from legacy hidden ids and caps stored dedupe ids', async () => {
+    const storage = createStorage({
+      settings: {
+        stats: {
+          hiddenVideoIds: Array.from({ length: MAX_HISTORICAL_HIDDEN_VIDEO_IDS + 25 }, (_, index) => `video-${index}`)
+        }
+      }
+    });
+
+    const settings = await readSettings(storage);
+
+    expect(settings.stats.hiddenVideoIds).toHaveLength(MAX_HISTORICAL_HIDDEN_VIDEO_IDS);
+    expect(settings.stats.hiddenVideoIds[0]).toBe('video-25');
+    expect(settings.stats.totalHiddenCount).toBe(MAX_HISTORICAL_HIDDEN_VIDEO_IDS + 25);
   });
 
   test('normalizes supported channel whitelist inputs', () => {

@@ -3,14 +3,16 @@ import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
+import { readReleaseMetadata } from './release-utils.mjs';
+
 const execFileAsync = promisify(execFile);
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
 const releaseDir = path.join(rootDir, 'release');
-const version = '1.0.0';
-const zipPath = path.join(releaseDir, `members-only-filter-v${version}.zip`);
 
 async function run() {
+  const releaseMetadata = await readReleaseMetadata({ rootDir });
+  const zipPath = path.join(releaseDir, releaseMetadata.zipFileName);
   await execFileAsync('node', ['scripts/build.mjs'], { cwd: rootDir });
   await mkdir(releaseDir, { recursive: true });
   await rm(zipPath, { force: true });

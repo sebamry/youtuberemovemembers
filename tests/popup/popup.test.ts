@@ -110,7 +110,8 @@ describe('popup controls', () => {
           channels: []
         },
         stats: {
-          hiddenVideoIds: []
+          hiddenVideoIds: [],
+          totalHiddenCount: 0
         },
         appearance: {
           theme: 'system'
@@ -150,7 +151,8 @@ describe('popup controls', () => {
           channels: []
         },
         stats: {
-          hiddenVideoIds: []
+          hiddenVideoIds: [],
+          totalHiddenCount: 0
         },
         appearance: {
           theme: 'system'
@@ -164,7 +166,8 @@ describe('popup controls', () => {
       {
         ...DEFAULT_SETTINGS,
         stats: {
-          hiddenVideoIds: ['abc123', 'xyz987']
+          hiddenVideoIds: ['abc123', 'xyz987'],
+          totalHiddenCount: 48
         }
       },
       3
@@ -173,7 +176,7 @@ describe('popup controls', () => {
     await ready;
 
     expect(document.body.textContent).toContain('3');
-    expect(document.body.textContent).toContain('2');
+    expect(document.body.textContent).toContain('48');
 
     document.querySelector<HTMLButtonElement>('#open-options')?.click();
 

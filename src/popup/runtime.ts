@@ -110,7 +110,7 @@ function renderPopup(document: Document, settings: ExtensionSettings, pageHidden
         <section class="settings-card stats-group">
           ${renderStatRow('En esta pagina', pageHiddenCount)}
           <div class="row-separator"></div>
-          ${renderStatRow('Total ocultados', settings.stats.hiddenVideoIds.length)}
+          ${renderStatRow('Total ocultados', settings.stats.totalHiddenCount)}
         </section>
       </div>
 
@@ -146,7 +146,8 @@ function readCurrentSettings(document: Document): ExtensionSettings {
       channels: DEFAULT_SETTINGS.whitelist.channels
     },
     stats: {
-      hiddenVideoIds: DEFAULT_SETTINGS.stats.hiddenVideoIds
+      hiddenVideoIds: DEFAULT_SETTINGS.stats.hiddenVideoIds,
+      totalHiddenCount: DEFAULT_SETTINGS.stats.totalHiddenCount
     },
     appearance: {
       theme: DEFAULT_SETTINGS.appearance.theme
