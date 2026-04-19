@@ -11,7 +11,7 @@
     "test:regression": "vitest run tests/content/regression.test.ts"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.327",
+    "@types/chrome": "^0.1.40",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.2",
     "jsdom": "^26.1.0",
